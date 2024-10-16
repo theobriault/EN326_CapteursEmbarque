@@ -20,7 +20,6 @@ using namespace std::chrono;
 
 // Initialise the digital pin BUTTON1 as an input
 #ifdef BUTTON1
-    //DigitalIn sw(BUTTON1);
     InterruptIn sw(BUTTON1);
 #else
     bool sw;
@@ -28,57 +27,37 @@ using namespace std::chrono;
 
 volatile bool count_finished = false;
 volatile bool button_clicked = false;  // Flag pour indiquer que l'interruption s'est produite
+volatile int idx = 0; // index pour le tableau des différentes fréquence
 Timer t;
 Ticker flipper;
 
-void UpRoutine()
+void ledToggle()
 {
     led = !led;
-    button_clicked = true;
-    t.reset();
-    t.start();
-
 }
 
-void DownRoutine()
+void changeFrequency()
 {
-    t.stop();
-    count_finished = true;
+    double frequencies[5] = {4.0, 3.0, 2.0, 1.0, 0.5};
+    idx = (idx + 1) % 5;  
+    flipper.attach(&ledToggle, frequencies[idx]);  
+    button_clicked = true;
 }
 
 int main()
 {
-    //double frequencies[3] = {4.0, 2.0, 1.0};
-    //sw.mode(PullDown);
-    sw.rise(&UpRoutine);
-    sw.fall(&DownRoutine);
-
-    //flipper.attach(&UpRoutine, frequencies[i]); // the address of the function to be attached (flip) and the interval (2 seconds)
+    sw.rise(&changeFrequency);
+    flipper.attach(&ledToggle, 5.0); // the address of the function to be attached (flip) and the interval (2 seconds)
 
     while (true)
     {
-        //Attente active (polling)
-        // Si utilisation de sw comme un DigitalIn
-        /*if (sw)
-            led = 1;
-        else
-            led = 0; */
-
-
 
         if (button_clicked) 
         {
-            printf("\nBouton pressé, LED inversée\n");
+            printf("\nBouton pressé, Changement de fréquence %d/5\n", idx+1);
             button_clicked = false; 
         }
-                
-        if(count_finished)
-        {
-            printf("Duree appui : %llums\n", duration_cast<milliseconds>(t.elapsed_time()).count());
-            count_finished = false;
-        }
-  
-        //printf("hello world\n");
+                  
         ThisThread::sleep_for(BLINKING_RATE);
     }
 }
