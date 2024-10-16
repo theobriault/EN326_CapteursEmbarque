@@ -4,6 +4,7 @@
  */
 
 #include "mbed.h"
+using namespace std::chrono;
 
 
 // Blinking rate in milliseconds
@@ -27,8 +28,8 @@
 
 volatile bool count_finished = false;
 volatile bool button_clicked = false;  // Flag pour indiquer que l'interruption s'est produite
-using namespace std::chrono;    
 Timer t;
+Ticker flipper;
 
 void UpRoutine()
 {
@@ -47,9 +48,12 @@ void DownRoutine()
 
 int main()
 {
+    //double frequencies[3] = {4.0, 2.0, 1.0};
     //sw.mode(PullDown);
     sw.rise(&UpRoutine);
     sw.fall(&DownRoutine);
+
+    //flipper.attach(&UpRoutine, frequencies[i]); // the address of the function to be attached (flip) and the interval (2 seconds)
 
     while (true)
     {
