@@ -4,60 +4,76 @@
  */
 
 #include "mbed.h"
-using namespace std::chrono;
 
 
 // Blinking rate in milliseconds
 #define BLINKING_RATE     500ms
 
-// Initialise the digital pin LED1 as an output
-#ifdef LED1
-    DigitalOut led(LED1);
-#else
-    bool led;
-#endif
+
+I2C i2c(P1_I2C_SDA, P1_I2C_SCL);
 
 
-// Initialise the digital pin BUTTON1 as an input
-#ifdef BUTTON1
-    InterruptIn sw(BUTTON1);
-#else
-    bool sw;
-#endif
+const int addr7bit_temperature = 0x48;      // 7 bit I2C address
+const int addr8bit_temperature = addr7bit_temperature << 1; // 8bit I2C address, 0x90
 
-volatile bool count_finished = false;
-volatile bool button_clicked = false;  // Flag pour indiquer que l'interruption s'est produite
-volatile int idx = 0; // index pour le tableau des différentes fréquence
-Timer t;
-Ticker flipper;
+const int addr7bit_humidity = 0x40;      // 7 bit I2C address
+const int addr8bit_humidity = addr7bit_humidity << 1; 
 
-void ledToggle()
+const int addr7bit_pressure = 0x70;      // 7 bit I2C address
+const int addr8bit_pressure = addr7bit_pressure << 1; 
+
+
+void getTemperature()
 {
-    led = !led;
+    char cmd[2];
+
+    cmd[0] = 0x00;
+    i2c.write(addr8bit_temperature, cmd, 1);
+    i2c.read(addr8bit_temperature, cmd, 2);
+    int temperature_degC = (float((cmd[0] << 8) | cmd[1]) / 128.0);
+    printf("temperature : %d degC\n", temperature_degC);
 }
 
-void changeFrequency()
+
+
+void getHumidity()
 {
-    double frequencies[5] = {4.0, 3.0, 2.0, 1.0, 0.5};
-    idx = (idx + 1) % 5;  
-    flipper.attach(&ledToggle, frequencies[idx]);  
-    button_clicked = true;
+    char cmd[2];
+
+    cmd[0] = 0xE5;
+    i2c.write(addr8bit_humidity, cmd, 1);
+    i2c.read(addr8bit_humidity, cmd, 2);
+    int humidity = -6 + 125 * (float((cmd[0] << 8) | cmd[1]) / 65535);
+    printf("humidity : %d%%\n", humidity);
 }
+
+
+
+
+void getPressure()
+{
+    char cmd[3] = {};
+    cmd[0] = 0xF9;
+    // cmd[1] = 0xF8;
+    // cmd[2] = 0xF7;
+
+    char data[3] = {};
+    i2c.write(addr8bit_pressure, cmd, 1);
+    i2c.read(addr8bit_pressure, data, 3);
+    int pressure = float((data[2] << 16) | (data[1] << 8) | (data[0])) - 8388607;
+    printf("pressure : %d Pa\n\n", pressure);
+}
+
+
+
+
 
 int main()
 {
-    sw.rise(&changeFrequency);
-    flipper.attach(&ledToggle, 5.0); // the address of the function to be attached (flip) and the interval (2 seconds)
-
-    while (true)
-    {
-
-        if (button_clicked) 
-        {
-            printf("\nBouton pressé, Changement de fréquence %d/5\n", idx+1);
-            button_clicked = false; 
-        }
-                  
+    while (1) {
+        getTemperature();
+        getHumidity();
+        getPressure();
         ThisThread::sleep_for(BLINKING_RATE);
     }
 }
