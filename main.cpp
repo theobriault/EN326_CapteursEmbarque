@@ -1,79 +1,49 @@
-/* mbed Microcontroller Library
- * Copyright (c) 2019 ARM Limited
+/*
+ * Copyright (c) 2020 Arm Limited and affiliates.
  * SPDX-License-Identifier: Apache-2.0
  */
-
 #include "mbed.h"
 
 
-// Blinking rate in milliseconds
-#define BLINKING_RATE     500ms
+DigitalOut led1(LED1);
+DigitalOut led2(LED2);
+Thread thread1(osPriorityNormal, 1024, nullptr, nullptr);
+Thread thread2(osPriorityNormal, 1024, nullptr, nullptr);
 
-
-I2C i2c(P1_I2C_SDA, P1_I2C_SCL);
-
-
-const int addr7bit_temperature = 0x48;      // 7 bit I2C address
-const int addr8bit_temperature = addr7bit_temperature << 1; // 8bit I2C address, 0x90
-
-const int addr7bit_humidity = 0x40;      // 7 bit I2C address
-const int addr8bit_humidity = addr7bit_humidity << 1; 
-
-const int addr7bit_pressure = 0x70;      // 7 bit I2C address
-const int addr8bit_pressure = addr7bit_pressure << 1; 
-
-
-void getTemperature()
+/*void led2_thread()
 {
-    char cmd[2];
+    while (true) {
+        led2 = !led2;
+        ThisThread::sleep_for(1s);
+    }
+}
+*/
 
-    cmd[0] = 0x00;
-    i2c.write(addr8bit_temperature, cmd, 1);
-    i2c.read(addr8bit_temperature, cmd, 2);
-    int temperature_degC = (float((cmd[0] << 8) | cmd[1]) / 128.0);
-    printf("temperature : %d degC\n", temperature_degC);
+void ping(void)
+{
+    for(int i = 0; i<100; i++)
+        printf("Ping\n");
 }
 
-
-
-void getHumidity()
+void pong(void)
 {
-    char cmd[2];
-
-    cmd[0] = 0xE5;
-    i2c.write(addr8bit_humidity, cmd, 1);
-    i2c.read(addr8bit_humidity, cmd, 2);
-    int humidity = -6 + 125 * (float((cmd[0] << 8) | cmd[1]) / 65535);
-    printf("humidity : %d%%\n", humidity);
+    for(int i = 0; i<100; i++)
+        printf("Pong\n");
 }
-
-
-
-
-void getPressure()
-{
-    char cmd[3] = {};
-    cmd[0] = 0xF9;
-    // cmd[1] = 0xF8;
-    // cmd[2] = 0xF7;
-
-    char data[3] = {};
-    i2c.write(addr8bit_pressure, cmd, 1);
-    i2c.read(addr8bit_pressure, data, 3);
-    int pressure = float((data[2] << 16) | (data[1] << 8) | (data[0])) - 8388607;
-    printf("pressure : %d Pa\n\n", pressure);
-}
-
-
-
-
 
 int main()
 {
-    while (1) {
-        getTemperature();
-        getHumidity();
-        getPressure();
-        ThisThread::sleep_for(BLINKING_RATE);
+//    thread.start(led2_thread);
+    thread1.start(ping);
+    thread2.start(pong);
+
+
+
+    while (true) {
+        led1 = !led1;
+        ThisThread::sleep_for(500);
     }
+
 }
+
+
