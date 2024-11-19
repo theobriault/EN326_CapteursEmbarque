@@ -10,15 +10,14 @@ set(APP_TARGET mbed-os-example-blinky)
 include(${MBED_PATH}/tools/cmake/app.cmake)
 
 project(${APP_TARGET})
+include_directories(include)
 
 add_subdirectory(${MBED_PATH})
 
-add_executable(${APP_TARGET})
+file(GLOB SRC_FILES "src/*.cpp")
+add_executable(${APP_TARGET} ${SRC_FILES})
 
-target_sources(${APP_TARGET}
-    PRIVATE
-        main.cpp
-)
+
 
 target_link_libraries(${APP_TARGET}
     PRIVATE
