@@ -1,9 +1,0 @@
-[submodule "mbed-os"]
-	path = mbed-os
-	url = https://github.com/ARMmbed/mbed-os
-[submodule "mbed_6tron-courses_lorawan"]
-	path = mbed_6tron-courses_lorawan
-	url = https://github.com/catie-aq/mbed_6tron-courses_lorawan.git
-[submodule "mbed_zest-core-FMLR-72"]
-	path = mbed_zest-core-FMLR-72
-	url = https://github.com/catie-aq/mbed_zest-core-FMLR-72.git
