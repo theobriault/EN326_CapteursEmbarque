@@ -474,7 +474,7 @@ Nous arrions pu améliorer l'architecture de notre projet en séparant les codes
 
 ### Description du code
 
-![](./resources/Description_main.png)
+![](./resources/Descrption_main.png)
 
 _**Les messages sont envoyées de façon périodique avec_ `ev_queue.call_every()`
 
